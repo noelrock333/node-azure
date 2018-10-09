@@ -1,6 +1,11 @@
+if (process.env.NODE_ENV != 'production') {
+  require('dotenv').config();
+}
+
 var express = require('express');
-var router = express.Router();
+var app = express();
 var azure = require('azure');
+var port = process.env.PORT || 3000;
 
 var serviceBusService = azure.createServiceBusService();
 serviceBusService.createQueueIfNotExists('myqueue', function(error){
@@ -11,21 +16,7 @@ serviceBusService.createQueueIfNotExists('myqueue', function(error){
   }
 });
 
-serviceBusService.receiveQueueMessage('myqueue', function(error, receivedMessage){
-  if(!error){
-    console.log('Message received and deleted')
-    console.log(receivedMessage);
-  } else {
-    console.log(error);
-  }
-});
-
-/* GET home page. */
-router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Express' });
-});
-
-router.get('/create_message', function(req, res, next) {
+app.get('/create_message', function(req, res, next) {
   var message = {
     body: 'Test message',
     customProperties: {
@@ -38,4 +29,6 @@ router.get('/create_message', function(req, res, next) {
   });
 });
 
-module.exports = router;
+app.listen(port, function () {
+  console.log(`Example app listening on port ${port}!`);
+});
