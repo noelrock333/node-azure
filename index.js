@@ -16,6 +16,13 @@ serviceBusService.createQueueIfNotExists('myqueue', function(error){
   }
 });
 
+serviceBusService.createTopicIfNotExists('mytopic',function(error){
+  if(!error){
+    // Topic was created or exists
+    console.log('topic created or exists.');
+  }
+});
+
 app.get('/create_message', function(req, res, next) {
   var message = {
     body: 'Test message',
@@ -24,6 +31,19 @@ app.get('/create_message', function(req, res, next) {
   }};
   serviceBusService.sendQueueMessage('myqueue', message, function(error){
     if(!error){
+      res.json(message);
+    }
+  });
+});
+
+app.get('/create_topic_message', function(req, res, next) {
+  var message = {
+    body: 'Test message topic',
+    customProperties: {
+        testproperty: 'TestValue'
+  }};
+  serviceBusService.sendTopicMessage('mytopic', message, function(error) {
+    if (!error) {
       res.json(message);
     }
   });
