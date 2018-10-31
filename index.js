@@ -9,20 +9,20 @@ var port = process.env.PORT || 3000;
 var axios = require('axios');
 
 var serviceBusService = azure.createServiceBusService();
-serviceBusService.createQueueIfNotExists('myqueue', function(error){
-  if(!error){
-    console.log('Service Bus Created');
-  } else {
-    console.log(error);
-  }
-});
+// serviceBusService.createQueueIfNotExists('myqueue', function(error){
+//   if(!error){
+//     console.log('Service Bus Created');
+//   } else {
+//     console.log(error);
+//   }
+// });
 
-serviceBusService.createTopicIfNotExists('mytopic',function(error){
-  if(!error){
-    // Topic was created or exists
-    console.log('topic created or exists.');
-  }
-});
+// serviceBusService.createTopicIfNotExists('mytopic',function(error){
+//   if(!error){
+//     // Topic was created or exists
+//     console.log('topic created or exists.');
+//   }
+// });
 
 app.get('/create_message', function(req, res, next) {
   var message = {
@@ -43,7 +43,7 @@ app.get('/create_topic_message', function(req, res, next) {
     customProperties: {
         testproperty: 'TestValue'
   }};
-  serviceBusService.sendTopicMessage('mytopic', message, function(error) {
+  serviceBusService.sendTopicMessage('return-receipt', message, function(error) {
     if (!error) {
       res.json(message);
     }
@@ -80,7 +80,7 @@ app.get('/ocapi', function(req, res, next) {
                   'Content-Type': 'application/json'
               },
               data: {
-                customer_name: 'Jhony'
+                status: "replaced"
               }
             }).then(function(modOrder) {
               // console.log(modOrder.data)
@@ -104,6 +104,41 @@ app.get('/ocapi', function(req, res, next) {
       console.log(err);
   });
 })
+
+app.get('/global_e', (req, res, next) => {
+  axios({
+    method: 'post',
+    url: `${process.env.GLOBAL_E_URL}/Order/UpdateOrderDispatchV2?merchantGUID=${process.env.MERCHANT_GUID}`,
+    data: {
+      OrderId: "GE2253796US",
+      DeliveryReferenceNumber: "123756483",
+      IsCompleted: true,
+      Parcels: [
+        {
+          ParcelCode: "123454321",
+          Products: [
+            {
+              DeliveryQuantity: 1,
+              ProductCode: "100000021990"
+            }
+          ]
+        }
+      ]
+    },
+    headers: {
+      'Accept': '*/*',
+      'Content-Type': 'application/json',
+      'cache-control' : 'no-cache'
+    }
+  })
+  .then(function(response) {
+    console.log(response.data);
+    res.json(response.data);
+  })
+  .catch(function(err) {
+    console.log(err);
+  });
+});
 
 app.listen(port, function () {
   console.log(`Example app listening on port ${port}!`);
